@@ -27,11 +27,14 @@ module.exports = class postController {
     if (!dados.titulo || !dados.descricao || !dados.conteudo || !dados.imagem) {
       res.json("Post não criado! Faltam dados.");
     } else {
+
+      const imagemBinaria = Buffer.from(imagem, 'base64');;
+
       const novo = {
         titulo: dados.titulo,
         descricao: dados.descricao,
         conteudo: dados.conteudo,
-        imagem: dados.imagem,
+        imagem: imagemBinaria,
         datapostagem: `${ano}-${mes}-${dia}`,
       };
 
@@ -79,7 +82,7 @@ module.exports = class postController {
 
   //Rota para pesquisa
   static async pesquisa(req, res) {
-    const pesquisa = req.params.search;
+    const pesquisa = req.query.buscar;
 
     const posts = await Post.findAll({
       where: {
