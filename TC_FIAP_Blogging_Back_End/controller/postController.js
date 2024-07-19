@@ -28,7 +28,7 @@ module.exports = class postController {
       res.json("Post não criado! Faltam dados.");
     } else {
 
-      const imagemBinaria = Buffer.from(imagem, 'base64');;
+      const imagemBinaria = Buffer.from(dados.imagem, 'base64');;
 
       const novo = {
         titulo: dados.titulo,
