@@ -1,17 +1,35 @@
 const Post = require("../model/Post");
 const { Op } = require("sequelize");
 
+function convertImagesToBase64(post) {
+  let imagemBase64 = null;
+  if (post.imagem != null) {
+    imagemBase64 = post.imagem.toString('base64');
+  }
+
+  return {
+    ...post.dataValues,
+    imagem: imagemBase64
+  };
+}
+
 module.exports = class postController {
   //Rota para pegar todos os posts
   static async main(req, res) {
-    const listPosts = await Post.findAll();
+    let listPosts = await Post.findAll();
+
+    listPosts = listPosts.map(post => {
+      return convertImagesToBase64(post);
+    });
+
     res.json(listPosts);
   }
 
   //Rota para pegar um post em especifico
   static async single(req, res) {
-    const post = await Post.findByPk(parseInt(req.params.id));
+    let post = await Post.findByPk(parseInt(req.params.id));
     if (!post) return res.status(404).send("Post não encontrado.");
+    post = convertImagesToBase64(post);
     res.json(post);
   }
 
@@ -28,7 +46,7 @@ module.exports = class postController {
       res.json("Post não criado! Faltam dados.");
     } else {
 
-      const imagemBinaria = Buffer.from(dados.imagem, 'base64');;
+      const imagemBinaria = Buffer.from(dados.imagem, 'base64');
 
       const novo = {
         titulo: dados.titulo,
@@ -54,11 +72,15 @@ module.exports = class postController {
     const mes = String(data.getMonth() + 1).padStart(2, "0");
     const ano = data.getFullYear();
 
+    if( dados.imagem ) {
+      dados.imagem = Buffer.from(dados.imagem, 'base64');
+    }
+
     const update = {
       titulo: dados.titulo,
       descricao: dados.descricao,
       conteudo: dados.conteudo,
-      imagem: dados.imagem,
+      imagem: dados.imagem ,
       dataatualizacao: `${ano}-${mes}-${dia}`,
     };
 
@@ -69,7 +91,12 @@ module.exports = class postController {
 
   //Rota para pegar todos os posts (Admin)
   static async admin(req, res) {
-    const listPosts = await Post.findAll();
+    let listPosts = await Post.findAll();
+    
+    listPosts = listPosts.map(post => {
+      return convertImagesToBase64(post);
+    });
+
     res.json(listPosts);
   }
 
@@ -84,7 +111,7 @@ module.exports = class postController {
   static async pesquisa(req, res) {
     const pesquisa = req.query.buscar;
 
-    const posts = await Post.findAll({
+    let posts = await Post.findAll({
       where: {
         [Op.or]: [
           {
@@ -99,6 +126,10 @@ module.exports = class postController {
           },
         ],
       },
+    });
+
+    posts = posts.map(post => {
+      return convertImagesToBase64(post);
     });
 
     res.json(posts);
